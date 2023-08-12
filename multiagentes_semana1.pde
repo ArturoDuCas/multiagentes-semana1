@@ -1,6 +1,7 @@
 import java.util.HashMap;
 import java.util.Map;
 Map<String, Integer> harvesterProps = new HashMap<>(); 
+Map<String, Integer> truckProps = new HashMap<>(); 
 
 int harvesterWidth = 100;    // Width of the harvester
 int harvesterHeight = 50;    // Height of the harvester
@@ -8,6 +9,13 @@ int harvesterCapacity = 2000;
 int harvesterCabinWidth = 40;     // Width of the cabin
 int harvesterCabinHeight = 20;    // Height of the cabin
 int harvesterWheelDiameter = 20;  // Diameter of the wheels
+
+int truckWidth = 50; 
+int truckHeight = truckWidth; 
+int truckCapacity = 4000; 
+int truckWheelDiameter = 10; 
+boolean moveTruck = true; 
+
 
 int roadWidth = 100; 
 color cropsColor = color(255, 128, 0);
@@ -19,7 +27,7 @@ color purpleColor = color(97, 75, 195);
 color grayColor = color(158,159,165); 
 color yellowColor = color(248,222,34); 
 
-boolean needToStop; 
+boolean harvesterMustStop; 
 
 
 
@@ -34,6 +42,14 @@ void setup() {
     harvesterProps.put("velY", 0); 
     harvesterProps.put("load", 0); 
     
+    // Initialize position and velocityof the truck
+    truckProps.put("x", width / 2);
+    truckProps.put("y", height / 2); 
+    truckProps.put("velX", 0); 
+    truckProps.put("velY", 0); 
+    truckProps.put("load", 0); 
+    
+    
     
     // Set background color
     background(cropsColor);
@@ -45,7 +61,7 @@ void setup() {
 
 
 
-void paintBeforeMove() {
+void paintHarvesterBeforeMove() {
   
   // Paint the harvester
   fill(brownColor); 
@@ -67,7 +83,7 @@ void paintBeforeMove() {
   
 }
 
-void move() {
+void moveHarvester() {
   
   
   int newXPos = harvesterProps.get("x") + harvesterProps.get("velX"); 
@@ -78,7 +94,7 @@ void move() {
   
 }
 
-boolean verifyMove() {
+boolean verifyHarvesterMove() {
   if(harvesterProps.get("load") >= harvesterCapacity) {
     harvesterProps.put("velY", 0); 
     harvesterProps.put("velX", 0); 
@@ -116,7 +132,7 @@ boolean verifyMove() {
   
 }
 
-void paintAfterMove() {
+void paintHarvesterAfterMove() {
     // Draw harvester body
     fill(whiteColor); 
     rect(harvesterProps.get("x"), harvesterProps.get("y"), harvesterWidth, harvesterHeight);
@@ -129,11 +145,9 @@ void paintAfterMove() {
       rect(harvesterProps.get("x"), harvesterProps.get("y") - harvesterCabinHeight, harvesterCabinWidth, harvesterCabinHeight);
     }
     
-    
-  
 }
 
-void recolectOnMove() {
+void harvestOnMove() {
   // Update the data 
   int actualLoad = harvesterProps.get("load"); 
   harvesterProps.put("load", actualLoad + Math.abs(1 * harvesterProps.get("velX"))); 
@@ -157,23 +171,40 @@ void recolectOnMove() {
   // They are drawn here so that they are in front of the load counter.
     fill(blackColor); // Black color
     ellipse(harvesterProps.get("x") + harvesterWheelDiameter, harvesterProps.get("y") + harvesterHeight, harvesterWheelDiameter, harvesterWheelDiameter);
-    ellipse(harvesterProps.get("x") + harvesterWidth - harvesterWheelDiameter, harvesterProps.get("y") + harvesterHeight, harvesterWheelDiameter, harvesterWheelDiameter);
+    ellipse(harvesterProps.get("x") + harvesterWidth - harvesterWheelDiameter, harvesterProps.get("y") + harvesterHeight, harvesterWheelDiameter, harvesterWheelDiameter); 
+}
+
+void paintTruck() {
+ 
+  //Paint the wheels
+  fill(blackColor); 
+  ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
+  ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
+  ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
+  ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
   
+  // Paint the body
+  fill(whiteColor); 
+  rect(truckProps.get("x"), truckProps.get("y"), truckWidth, truckHeight, 5); 
   
   
 }
 
 
 void draw() {
-  needToStop = verifyMove(); 
+  harvesterMustStop = verifyHarvesterMove(); 
   
-  if (!needToStop) {
-    paintBeforeMove();
-    move(); 
-    paintAfterMove(); 
+  if (!harvesterMustStop) {
+    paintHarvesterBeforeMove();
+    moveHarvester(); 
+    paintHarvesterAfterMove(); 
     
-    recolectOnMove();
+    harvestOnMove();
   } 
+  
+  if (moveTruck) {
+    paintTruck(); 
+  }
   
   
    
