@@ -8,22 +8,27 @@ int truckCapacity = 2000;
 int cabinWidth = 40;     // Width of the cabin
 int cabinHeight = 20;    // Height of the cabin
 int wheelDiameter = 20;  // Diameter of the wheels
+
+int roadWidth = 100; 
 color cropsColor = color(255, 128, 0);
 color brownColor = color(139, 69, 19); 
 color blackColor = color(0, 0, 0); 
 color whiteColor = color(255,255,255); 
 color blueColor = color(100, 149, 237); 
 color purpleColor = color(97, 75, 195); 
+color grayColor = color(158,159,165); 
+color yellowColor = color(248,222,34); 
 
 boolean needToStop; 
 
 
 
 void setup() {
-    size(800, 600);
+    size(1000, 600);
+    noStroke(); // Disable the border of the figures 
  
     // Initialize position and velocity of the truck
-    truckProps.put("x", 0); 
+    truckProps.put("x", roadWidth); 
     truckProps.put("y", height - truckHeight); 
     truckProps.put("velX", 5); 
     truckProps.put("velY", 0); 
@@ -32,12 +37,15 @@ void setup() {
     
     // Set background color
     background(cropsColor);
+    // Create the road
+    fill(grayColor); 
+    rect(0, 0, roadWidth, height); 
+    
 }
 
 
 
 void paintBeforeMove() {
-  noStroke(); // Disable the border
   
   // Paint the truck
   fill(brownColor); 
@@ -86,7 +94,7 @@ boolean verifyMove() {
   int futureYPos = truckProps.get("y") - truckHeight; 
   int velX = truckProps.get("velX"); 
   
-  if(futureXPos + truckWidth >= width || futureXPos <= 0) {
+  if(futureXPos + truckWidth >= width || futureXPos <= roadWidth) {
     // If it has finished
     println(futureYPos); 
     if(futureYPos < 0) {
