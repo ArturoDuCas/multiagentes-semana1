@@ -32,6 +32,8 @@ color yellowColor = color(248,222,34);
 boolean harvesterMustStop; 
 
 int i = 0; 
+int truckVelY = 5;  // Vitesse du camion
+
 
 void setup() {
     size(600, 600);
@@ -195,54 +197,58 @@ void paintRoad() {
 }
 
 
-void calculateHarvesterFinalPosition() {
-  int capacityLeft = harvesterCapacity -  harvesterProps.get("load");
-  
-  // number of renderings required for the harvester to fill up
-  int totalRendersLeft = capacityLeft / (grainsPerPixel * abs(harvesterProps.get("velX"))); 
-  
-  // number of renderings the harvester takes in one row  
-  int rendersOnALine = (width - roadWidth - harvesterWidth) / abs(harvesterProps.get("velX")); 
-  
-  int rendersLeftOnTheLine = 0; 
-  if(harvesterProps.get("velX") > 0) { // moving to the right
-    rendersLeftOnTheLine = rendersOnALine - (harvesterProps.get("x") - roadWidth) / harvesterProps.get("velX"); 
-  }
-  
-  println(rendersLeftOnTheLine); 
-  
-  
-  int finalCol = totalRendersLeft % (rendersOnALine); 
-  
-  
-  int xPos = finalCol * harvesterProps.get("velX") + roadWidth;
-  
 
+
+void calculateHarvesterFinalPosition() {
+    int capacityLeft = harvesterCapacity - harvesterProps.get("load");
+    int totalRendersLeft = capacityLeft / (grainsPerPixel * abs(harvesterProps.get("velX")));
+    int rendersOnALine = (width - roadWidth - harvesterWidth) / abs(harvesterProps.get("velX"));
+
+    int totalLinesLeft = totalRendersLeft / rendersOnALine;  // How many full lines it takes to fill up
+    int rendersInLastLine = totalRendersLeft % rendersOnALine; // Renders on the final (or current) line
+
+    int xPos = 0;
+    if (harvesterProps.get("velX") > 0) { // moving to the right
+        xPos = roadWidth + rendersInLastLine * harvesterProps.get("velX");
+    } else { // moving to the left
+        xPos = width - (rendersInLastLine * abs(harvesterProps.get("velX")));
+    }
+
+    // Calculate the y position
+    int yPos = harvesterProps.get("y") - (totalLinesLeft * harvesterHeight);
+    if(yPos < 0) yPos = 0;  // Ensure yPos doesn't go negative
+
+    println("Final X Position: " + xPos);
+    println("Final Y Position: " + yPos);
+}
+void moveTruckToHarvester() {
+    
+    if (truckProps.get("y") > harvesterProps.get("y")) {
+        int newY = truckProps.get("y") - truckVelY;
+        truckProps.put("y", newY);
+    }
 }
 
 void draw() {
-  // Paint the road on every Iteration
-  paintRoad(); 
-  
-  
-  harvesterMustStop = verifyHarvesterMove(); 
-  
-  if (!harvesterMustStop) {
-    paintHarvesterBeforeMove();
-    moveHarvester(); 
-    paintHarvesterAfterMove(); 
-    
-    harvestOnMove();
-    
-    i = i + 1; 
-    calculateHarvesterFinalPosition();  //<>//
-  } 
-  
-  if (moveTruck) {
-    paintTruck(); 
-  }
-  
-  
-  
-   
+    // Paint the road on every Iteration
+    paintRoad(); 
+
+    harvesterMustStop = verifyHarvesterMove();
+
+    if (!harvesterMustStop) {
+        paintHarvesterBeforeMove();
+        moveHarvester(); 
+        paintHarvesterAfterMove(); 
+
+        harvestOnMove();
+
+        i = i + 1; 
+        calculateHarvesterFinalPosition();  
+    }
+
+    if (harvesterMustStop && moveTruck) {
+        moveTruckToHarvester();
+    }
+
+    paintTruck();
 }
