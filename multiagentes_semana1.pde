@@ -13,8 +13,10 @@ int harvesterWheelDiameter = 20;  // Diameter of the wheels
 int truckWidth = 50; 
 int truckHeight = truckWidth; 
 int truckCapacity = 4000; 
-int truckWheelDiameter = 10; 
+int truckWheelDiameter = 10;
 boolean moveTruck = true; 
+
+int grainsPerPixel = 1; 
 
 
 int roadWidth = 100; 
@@ -29,10 +31,10 @@ color yellowColor = color(248,222,34);
 
 boolean harvesterMustStop; 
 
-
+int i = 0; 
 
 void setup() {
-    size(1000, 600);
+    size(600, 600);
     noStroke(); // Disable the border of the figures 
  
     // Initialize position and velocity of the harvester
@@ -43,8 +45,8 @@ void setup() {
     harvesterProps.put("load", 0); 
     
     // Initialize position and velocityof the truck
-    truckProps.put("x", width / 2);
-    truckProps.put("y", height / 2); 
+    truckProps.put("x", (roadWidth / 2) - (truckWidth / 2));
+    truckProps.put("y", height - truckHeight - 20); 
     truckProps.put("velX", 0); 
     truckProps.put("velY", 0); 
     truckProps.put("load", 0); 
@@ -53,9 +55,6 @@ void setup() {
     
     // Set background color
     background(cropsColor);
-    // Create the road
-    fill(grayColor); 
-    rect(0, 0, roadWidth, height); 
     
 }
 
@@ -150,14 +149,13 @@ void paintHarvesterAfterMove() {
 void harvestOnMove() {
   // Update the data 
   int actualLoad = harvesterProps.get("load"); 
-  harvesterProps.put("load", actualLoad + Math.abs(1 * harvesterProps.get("velX"))); 
+  harvesterProps.put("load", actualLoad + Math.abs(grainsPerPixel * harvesterProps.get("velX"))); 
   
   //Draw the capacity
   float loadWidthPercentage =(float) harvesterProps.get("load") / harvesterCapacity; 
   float loadWidthFloat = harvesterWidth * loadWidthPercentage; 
   int loadWidth = (int) loadWidthFloat;  
 
-   println(harvesterProps.get("load") / harvesterCapacity); 
  
   // Draw load 
   fill(purpleColor); 
@@ -190,8 +188,43 @@ void paintTruck() {
   
 }
 
+void paintRoad() {
+  // Paint the ground
+  fill(grayColor); 
+  rect(0, 0, roadWidth, height); 
+}
+
+
+void calculateHarvesterFinalPosition() {
+  int capacityLeft = harvesterCapacity -  harvesterProps.get("load");
+  
+  // number of renderings required for the harvester to fill up
+  int totalRendersLeft = capacityLeft / (grainsPerPixel * abs(harvesterProps.get("velX"))); 
+  
+  // number of renderings the harvester takes in one row  
+  int rendersOnALine = (width - roadWidth - harvesterWidth) / abs(harvesterProps.get("velX")); 
+  
+  int rendersLeftOnTheLine = 0; 
+  if(harvesterProps.get("velX") > 0) { // moving to the right
+    rendersLeftOnTheLine = rendersOnALine - (harvesterProps.get("x") - roadWidth) / harvesterProps.get("velX"); 
+  }
+  
+  println(rendersLeftOnTheLine); 
+  
+  
+  int finalCol = totalRendersLeft % (rendersOnALine); 
+  
+  
+  int xPos = finalCol * harvesterProps.get("velX") + roadWidth;
+  
+
+}
 
 void draw() {
+  // Paint the road on every Iteration
+  paintRoad(); 
+  
+  
   harvesterMustStop = verifyHarvesterMove(); 
   
   if (!harvesterMustStop) {
@@ -200,11 +233,15 @@ void draw() {
     paintHarvesterAfterMove(); 
     
     harvestOnMove();
+    
+    i = i + 1; 
+    calculateHarvesterFinalPosition();  //<>//
   } 
   
   if (moveTruck) {
     paintTruck(); 
   }
+  
   
   
    
