@@ -34,7 +34,7 @@ boolean harvesterMustStop;
 int i = 0; 
 
 void setup() {
-    size(600, 600);
+    size(800, 600);
     noStroke(); // Disable the border of the figures 
  
     // Initialize position and velocity of the harvester
@@ -43,6 +43,7 @@ void setup() {
     harvesterProps.put("velX", 5); 
     harvesterProps.put("velY", 0); 
     harvesterProps.put("load", 0); 
+    harvesterProps.put("finalY", 0); 
     
     // Initialize position and velocityof the truck
     truckProps.put("x", (roadWidth / 2) - (truckWidth / 2));
@@ -50,6 +51,8 @@ void setup() {
     truckProps.put("velX", 0); 
     truckProps.put("velY", 0); 
     truckProps.put("load", 0); 
+    truckProps.put("xRoute", 0);
+    truckProps.put("yRoute", 0); 
     
     
     
@@ -83,8 +86,6 @@ void paintHarvesterBeforeMove() {
 }
 
 void moveHarvester() {
-  
-  
   int newXPos = harvesterProps.get("x") + harvesterProps.get("velX"); 
   int newYPos = harvesterProps.get("y") + harvesterProps.get("velY"); 
   
@@ -205,19 +206,36 @@ void calculateHarvesterFinalPosition() {
   int rendersOnALine = (width - roadWidth - harvesterWidth) / abs(harvesterProps.get("velX")); 
   
   int rendersLeftOnTheLine = 0; 
+  boolean toTheLeft = true; 
   if(harvesterProps.get("velX") > 0) { // moving to the right
     rendersLeftOnTheLine = rendersOnALine - (harvesterProps.get("x") - roadWidth) / harvesterProps.get("velX"); 
+    toTheLeft = false; 
+  } else { // moving to the left 
+    rendersLeftOnTheLine = rendersOnALine - abs((width - roadWidth - harvesterProps.get("x")) / harvesterProps.get("velX")); 
+  }
+
+  int rowsLeft = 0; 
+  int finalX = 0; 
+  if(totalRendersLeft > rendersLeftOnTheLine) {
+    int rendersLeftWhenFinishingTheLine = totalRendersLeft - rendersLeftOnTheLine; 
+    rowsLeft = rendersLeftWhenFinishingTheLine / rendersOnALine + 1;  
+  } else { 
+    if(toTheLeft) { 
+      finalX = harvesterProps.get("x") - (totalRendersLeft * abs(harvesterProps.get("velX"))); 
+    }
   }
   
-  println(rendersLeftOnTheLine); 
+  int actualRow = (height - harvesterProps.get("y")) / harvesterHeight; 
+  int finalY = height - ((actualRow + rowsLeft - 1) * harvesterHeight); 
+   
   
+  fill(whiteColor); 
+  rect(finalX, finalY, 10, 10); 
   
-  int finalCol = totalRendersLeft % (rendersOnALine); 
+  harvesterProps.put("finalY", finalY + harvesterHeight); 
+  truckProps.put("xRoute", finalX);
+  truckProps.put("yRoute", finalY );   
   
-  
-  int xPos = finalCol * harvesterProps.get("velX") + roadWidth;
-  
-
 }
 
 void draw() {
@@ -235,7 +253,7 @@ void draw() {
     harvestOnMove();
     
     i = i + 1; 
-    calculateHarvesterFinalPosition();  //<>//
+    calculateHarvesterFinalPosition(); 
   } 
   
   if (moveTruck) {
