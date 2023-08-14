@@ -30,9 +30,13 @@ color grayColor = color(158,159,165);
 color yellowColor = color(248,222,34); 
 
 boolean harvesterMustStop; 
+boolean harvesterIsReturning = false; 
+int harvesterPreviousX, harvesterPreviousY; 
+
 
 int i = 0; 
 int truckVelY = 5;  // Vitesse du camion
+boolean harvesterUnloading = false;
 
 
 void setup() {
@@ -175,19 +179,22 @@ void harvestOnMove() {
 }
 
 void paintTruck() {
- 
-  //Paint the wheels
-  fill(blackColor); 
-  ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
-  ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
-  ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
-  ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
-  
-  // Paint the body
-  fill(whiteColor); 
-  rect(truckProps.get("x"), truckProps.get("y"), truckWidth, truckHeight, 5); 
-  
-  
+    // Paint the body
+    fill(whiteColor);
+    rect(truckProps.get("x"), truckProps.get("y"), truckWidth, truckHeight, 5);
+
+    // Paint the load
+    float loadPercentage = (float)truckProps.get("load") / truckCapacity;
+    int loadHeight = (int)(truckHeight * loadPercentage);
+    fill(purpleColor);
+    rect(truckProps.get("x"), truckProps.get("y") + truckHeight - loadHeight, truckWidth, loadHeight);
+
+    // Paint the wheels
+    fill(blackColor);
+    ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
+    ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
+    ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
+    ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
 }
 
 void paintRoad() {
@@ -229,13 +236,30 @@ void moveTruckToHarvester() {
     }
 }
 
+void unloadGrains() {
+    int harvesterLoad = harvesterProps.get("load");
+    int truckLoad = truckProps.get("load");
+    int transferAmount = min(harvesterLoad, truckCapacity - truckLoad);
+
+    // Transfer grains from harvester to truck
+    harvesterProps.put("load", harvesterLoad - transferAmount);
+    truckProps.put("load", truckLoad + transferAmount);
+
+    // If the truck is full or harvester is empty, let the harvester continue
+    if (truckProps.get("load") == truckCapacity || harvesterProps.get("load") == 0) {
+        harvesterUnloading = false;
+        moveTruck = false;
+        harvesterProps.put("velX", 5);
+    }
+}
+
 void draw() {
     // Paint the road on every Iteration
     paintRoad(); 
 
     harvesterMustStop = verifyHarvesterMove();
 
-    if (!harvesterMustStop) {
+    if (!harvesterMustStop && !harvesterUnloading) {
         paintHarvesterBeforeMove();
         moveHarvester(); 
         paintHarvesterAfterMove(); 
@@ -246,8 +270,19 @@ void draw() {
         calculateHarvesterFinalPosition();  
     }
 
-    if (harvesterMustStop && moveTruck) {
-        moveTruckToHarvester();
+    // If harvester's capacity is reached and it's not unloading, move the truck to the harvester
+    if (harvesterProps.get("load") >= harvesterCapacity && !harvesterUnloading) {
+        harvesterUnloading = true;
+        moveTruck = true;
+    }
+
+    // If harvester is unloading, unload grains to truck
+    if (harvesterUnloading) {
+        if (truckProps.get("y") > harvesterProps.get("y")) {
+            moveTruckToHarvester();
+        } else {
+            unloadGrains();
+        }
     }
 
     paintTruck();
