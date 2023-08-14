@@ -174,21 +174,6 @@ void harvestOnMove() {
     ellipse(harvesterProps.get("x") + harvesterWidth - harvesterWheelDiameter, harvesterProps.get("y") + harvesterHeight, harvesterWheelDiameter, harvesterWheelDiameter); 
 }
 
-void paintTruck() {
- 
-  //Paint the wheels
-  fill(blackColor); 
-  ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
-  ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
-  ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
-  ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
-  
-  // Paint the body
-  fill(whiteColor); 
-  rect(truckProps.get("x"), truckProps.get("y"), truckWidth, truckHeight, 5); 
-  
-  
-}
 
 void paintRoad() {
   // Paint the ground
@@ -236,29 +221,31 @@ void calculateHarvesterFinalPosition() {
   harvesterProps.put("finalY", finalY + harvesterHeight); 
   truckProps.put("xRoute", finalX);
   truckProps.put("yRoute", finalY );   
+  println("yRoute", truckProps.get("yRoute"));
+}
+
+void paintTruckAfterMove(){
+
   
 }
 
-void paintTruckBeforeMove(){
-  
-  println("Entro paint bofore move"); 
-  
-  fill(blackColor);
+void paintTruck() {
+ 
+  //Paint the wheels
+  fill(blackColor); 
   ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
   ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
   ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
   ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
   
-    
   // Paint the body
   fill(whiteColor); 
   rect(truckProps.get("x"), truckProps.get("y"), truckWidth, truckHeight, 5); 
   
-
+  
 }
 
-
-void moveTruckFunction(){
+void moveTruckFunctionY(){
   
   println("Entra a funcion moveTrunkfunction");
   truckProps.put("velY", -1);
@@ -268,6 +255,38 @@ void moveTruckFunction(){
   
   truckProps.put("x", newXPos); 
   truckProps.put("y", newYPos); 
+  
+}
+
+void moveTruckFunctionX(){
+   truckProps.put("velX", 3);
+
+  int newXPos = truckProps.get("x") + truckProps.get("velX");
+  
+  truckProps.put("x", newXPos); 
+}
+
+boolean verificarLlegadaY(){
+  
+  int futureYPos = truckProps.get("y") - truckHeight;
+  
+  if(futureYPos <= truckProps.get("yRoute")){
+    return true; 
+  }else{
+    return false; 
+  }
+
+}
+
+boolean verificarLlegadaX(){
+  
+  int futureXPos = truckProps.get("x") + truckProps.get("velX");
+  
+  if(futureXPos <= truckProps.get("xRoute")){
+    return true; 
+  }else{
+    return false; 
+  }
   
 }
 
@@ -288,13 +307,20 @@ void draw() {
     i = i + 1; 
     calculateHarvesterFinalPosition(); 
     
-    if( truckProps.get("y") == harvesterProps.get("finalY")){
-      truckProps.put("velY", 0);
-      
-    }else{
-      paintTruck(); 
-      moveTruckFunction();
-    }
   }
-   
+  
+ boolean truckArrivedY = verificarLlegadaY();   
+ boolean truckArrivedX = verificarLlegadaX();
+ 
+  if(harvesterMustStop){
+    paintTruck();
+    if(!truckArrivedY){ 
+     moveTruckFunctionY();
+    }
+ 
+    if(truckArrivedY){
+          moveTruckFunctionX();
+          
+    } 
+  }
 }
