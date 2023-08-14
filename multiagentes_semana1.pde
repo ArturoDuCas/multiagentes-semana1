@@ -34,9 +34,10 @@ boolean harvesterMustStop;
 boolean truckArrivedY; 
 boolean enganchado; 
 boolean terminarEnganche = false; 
+boolean harvesterTermino = false;
 int drainRatio = 2; 
 
-int i = 0; 
+int storeQuantity = 0; 
 
 void setup() {
     size(800, 600);
@@ -119,6 +120,7 @@ boolean verifyHarvesterMove() {
   if(futureXPos + harvesterWidth >= width || futureXPos <= roadWidth) {
     // If it has finished
     if(futureYPos < 0) {
+      harvesterTermino = true;
       return true; 
     }
     
@@ -306,10 +308,24 @@ void verificarLlegadaX(){
 
 
 
+void paintTruckCapacity() {
+  float truckLoadWidthPercentage = (float) truckProps.get("load") / truckCapacity; 
+   float truckLoadWidthFloat = truckWidth * truckLoadWidthPercentage;
+   int truckLoadWidth = (int) truckLoadWidthFloat;
+   
+   println("hola"); 
+   fill(purpleColor); 
+    if(harvesterProps.get("velX") > 0) {
+      rect(truckProps.get("x"), truckProps.get("y"), truckLoadWidth, truckHeight, 5);
+    } else {
+      rect(truckProps.get("x") + truckWidth - truckLoadWidth, truckProps.get("y"), truckLoadWidth, truckHeight, 5);
+    }
+   
+
+}
 
 void followHarvester() {
   if(harvesterProps.get("load") == 0 || truckProps.get("load") == truckCapacity) {
-    truckProps.put("load", 0); // ;KLDAJSFKL;AJS;LKFAJL;KFJAL;KFDJA;LK FDJA;LF JAS;LKFJDSA;LKFJDAS;LK JFDS;ALK FSDA K;FSAD;JFK;DLASJF;KLASDJ F;LKAJS FLK;AJDS ;LFKDJLAK;SJFKL;ASDJFLK;SDAJLK;FSDJAL;KFJDASKL;JFDAS;LK
     enganchado = false; 
     terminarEnganche = true; 
     return; 
@@ -334,26 +350,21 @@ void followHarvester() {
   truckProps.put("x", harvesterProps.get("x")); 
   truckProps.put("y", harvesterProps.get("y") + harvesterHeight + 15); 
   paintTruckAfterMove(); 
+  paintTruckCapacity(); 
   
     //Draw the capacity
     float harvesterLoadWidthPercentage =(float) harvesterProps.get("load") / harvesterCapacity; 
-    float truckLoadWidthPercentage = (float) truckProps.get("load") / truckCapacity; 
     float harvesterLoadWidthFloat = harvesterWidth * harvesterLoadWidthPercentage; 
-    float truckLoadWidthFloat = truckWidth * truckLoadWidthPercentage; 
     int harvesterLoadWidth = (int) harvesterLoadWidthFloat;  
-    int truckLoadWidth = (int) truckLoadWidthFloat;
     
     
-  
-  
+    
     // Draw load 
     fill(purpleColor); 
     if(harvesterProps.get("velX") > 0) {
       rect(harvesterProps.get("x"), harvesterProps.get("y"), harvesterLoadWidth, harvesterHeight);
-      rect(truckProps.get("x"), truckProps.get("y"), truckLoadWidth, truckHeight, 5);
     } else {
       rect(harvesterProps.get("x") + harvesterWidth - harvesterLoadWidth, harvesterProps.get("y"), harvesterLoadWidth, harvesterHeight);
-      rect(truckProps.get("x") + truckWidth - truckLoadWidth, truckProps.get("y"), truckLoadWidth, truckHeight, 5);
     }
     
   // Draw wheels 
@@ -383,11 +394,33 @@ void transportLoad() {
     truckProps.put("velX", 0); 
     truckProps.put("velY", 0);
     terminarEnganche = false; 
+    storeQuantity += truckProps.get("load");
+    truckProps.put("load", 0); 
     
     
   }
 
 }
+
+void displayHarvestQuantity() {
+  textSize(24);    // Establece el tamaño del texto
+  textAlign(CENTER, CENTER);
+  String mensaje = "Cantidad en almacen: " + storeQuantity;
+  
+  int yPos = height - 25;
+  
+  fill(0); // Establece el color de relleno a negro
+  float textWidth = textWidth(mensaje); // Obtiene el ancho del texto
+  
+  // Dibuja un rectángulo negro detrás del texto centrado
+  rectMode(CENTER);
+  rect(width / 2, yPos, textWidth + 20, 30); // Ajusta el tamaño del rectángulo según el texto
+  rectMode(CORNER); 
+  
+  fill(255); // Establece el color de relleno a blanco
+  text(mensaje, width / 2, yPos);    // Muestra el texto en el centro de la ventana
+}
+
 
 void draw() {
   // Paint the road on every Iteration
@@ -405,7 +438,9 @@ void draw() {
     calculateHarvesterFinalPosition();   
   } 
   
-  println(enganchado, terminarEnganche); 
+  println(enganchado, terminarEnganche);
+  
+  if(!harvesterTermino){
   if(!enganchado && !terminarEnganche) {
     
     verificarLlegadaY(); 
@@ -413,19 +448,27 @@ void draw() {
     paintTruckBeforeMove(); 
     moveTruck(); 
     paintTruckAfterMove(); 
+    paintTruckCapacity(); 
   } else {
-  if(!terminarEnganche) {
-    followHarvester(); 
-  } else {
-    transportLoad(); 
+    
+    if(!terminarEnganche) {
+      followHarvester(); 
+    } else {
+      transportLoad(); 
+      paintTruckBeforeMove(); 
+      moveTruck(); 
+      paintTruckAfterMove(); 
+      paintTruckCapacity(); 
+    }
+  }
+  }
+  else{
+    transportLoad();
     paintTruckBeforeMove(); 
     moveTruck(); 
     paintTruckAfterMove(); 
   }
-  }
-    
  
-  
-
+ displayHarvestQuantity(); 
   
 }
