@@ -14,7 +14,8 @@ int truckWidth = 50;
 int truckHeight = truckWidth; 
 int truckCapacity = 4000; 
 int truckWheelDiameter = 10;
-boolean moveTruck = true; 
+
+boolean moveTruck = false; 
 
 int grainsPerPixel = 1; 
 
@@ -45,7 +46,7 @@ void setup() {
     harvesterProps.put("load", 0); 
     harvesterProps.put("finalY", 0); 
     
-    // Initialize position and velocityof the truck
+    // Initialize position and velocity of the truck
     truckProps.put("x", (roadWidth / 2) - (truckWidth / 2));
     truckProps.put("y", height - truckHeight - 20); 
     truckProps.put("velX", 0); 
@@ -238,6 +239,38 @@ void calculateHarvesterFinalPosition() {
   
 }
 
+void paintTruckBeforeMove(){
+  
+  println("Entro paint bofore move"); 
+  
+  fill(blackColor);
+  ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
+  ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y") + truckHeight, truckWheelDiameter, truckWheelDiameter);
+  ellipse(truckProps.get("x") + truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
+  ellipse(truckProps.get("x") + truckWidth - truckWheelDiameter, truckProps.get("y"), truckWheelDiameter, truckWheelDiameter);
+  
+    
+  // Paint the body
+  fill(whiteColor); 
+  rect(truckProps.get("x"), truckProps.get("y"), truckWidth, truckHeight, 5); 
+  
+
+}
+
+
+void moveTruckFunction(){
+  
+  println("Entra a funcion moveTrunkfunction");
+  truckProps.put("velY", -1);
+
+  int newXPos = truckProps.get("x") + truckProps.get("velX");
+  int newYPos = truckProps.get("y") + truckProps.get("velY");
+  
+  truckProps.put("x", newXPos); 
+  truckProps.put("y", newYPos); 
+  
+}
+
 void draw() {
   // Paint the road on every Iteration
   paintRoad(); 
@@ -254,13 +287,14 @@ void draw() {
     
     i = i + 1; 
     calculateHarvesterFinalPosition(); 
-  } 
-  
-  if (moveTruck) {
-    paintTruck(); 
+    
+    if( truckProps.get("y") == harvesterProps.get("finalY")){
+      truckProps.put("velY", 0);
+      
+    }else{
+      paintTruck(); 
+      moveTruckFunction();
+    }
   }
-  
-  
-  
    
 }
