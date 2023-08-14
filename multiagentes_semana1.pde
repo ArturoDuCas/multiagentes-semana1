@@ -270,7 +270,7 @@ boolean verificarLlegadaY(){
   
   int futureYPos = truckProps.get("y") - truckHeight;
   
-  if(futureYPos <= truckProps.get("yRoute")){
+  if(futureYPos == truckProps.get("yRoute")){
     return true; 
   }else{
     return false; 
@@ -282,7 +282,7 @@ boolean verificarLlegadaX(){
   
   int futureXPos = truckProps.get("x") + truckProps.get("velX");
   
-  if(futureXPos <= truckProps.get("xRoute")){
+  if(futureXPos >= truckProps.get("xRoute")){
     return true; 
   }else{
     return false; 
@@ -314,13 +314,16 @@ void draw() {
  
   if(harvesterMustStop){
     paintTruck();
+    
     if(!truckArrivedY){ 
      moveTruckFunctionY();
     }
  
     if(truckArrivedY){
+      
+      if(!truckArrivedX){
           moveTruckFunctionX();
-          
+      } 
     } 
   }
 }
