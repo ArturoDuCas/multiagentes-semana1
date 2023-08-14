@@ -33,6 +33,8 @@ color yellowColor = color(248,222,34);
 boolean harvesterMustStop; 
 boolean truckArrivedY; 
 boolean enganchado; 
+boolean terminarEnganche = false; 
+int drainRatio = 2; 
 
 int i = 0; 
 
@@ -162,25 +164,29 @@ void harvestOnMove() {
   int actualLoad = harvesterProps.get("load"); 
   harvesterProps.put("load", actualLoad + Math.abs(grainsPerPixel * harvesterProps.get("velX"))); 
   
-  //Draw the capacity
-  float loadWidthPercentage =(float) harvesterProps.get("load") / harvesterCapacity; 
-  float loadWidthFloat = harvesterWidth * loadWidthPercentage; 
-  int loadWidth = (int) loadWidthFloat;  
-
- 
-  // Draw load 
-  fill(purpleColor); 
-  if(harvesterProps.get("velX") > 0) {
-    rect(harvesterProps.get("x"), harvesterProps.get("y"), loadWidth, harvesterHeight);
-  } else {
-    rect(harvesterProps.get("x") + harvesterWidth - loadWidth, harvesterProps.get("y"), loadWidth, harvesterHeight);
+  
+  if(!enganchado) {
+    //Draw the capacity
+    float loadWidthPercentage =(float) harvesterProps.get("load") / harvesterCapacity; 
+    float loadWidthFloat = harvesterWidth * loadWidthPercentage; 
+    int loadWidth = (int) loadWidthFloat;  
+  
+   
+      // Draw load 
+    fill(purpleColor); 
+    if(harvesterProps.get("velX") > 0) {
+      rect(harvesterProps.get("x"), harvesterProps.get("y"), loadWidth, harvesterHeight);
+    } else {
+      rect(harvesterProps.get("x") + harvesterWidth - loadWidth, harvesterProps.get("y"), loadWidth, harvesterHeight);
+    }
+    
+    // Draw wheels 
+    // They are drawn here so that they are in front of the load counter.
+      fill(blackColor); // Black color
+      ellipse(harvesterProps.get("x") + harvesterWheelDiameter, harvesterProps.get("y") + harvesterHeight, harvesterWheelDiameter, harvesterWheelDiameter);
+      ellipse(harvesterProps.get("x") + harvesterWidth - harvesterWheelDiameter, harvesterProps.get("y") + harvesterHeight, harvesterWheelDiameter, harvesterWheelDiameter);
   }
   
-  // Draw wheels 
-  // They are drawn here so that they are in front of the load counter.
-    fill(blackColor); // Black color
-    ellipse(harvesterProps.get("x") + harvesterWheelDiameter, harvesterProps.get("y") + harvesterHeight, harvesterWheelDiameter, harvesterWheelDiameter);
-    ellipse(harvesterProps.get("x") + harvesterWidth - harvesterWheelDiameter, harvesterProps.get("y") + harvesterHeight, harvesterWheelDiameter, harvesterWheelDiameter); 
 }
 
 
@@ -290,8 +296,14 @@ void verificarLlegadaX(){
 
 
 
-int drainRatio = 5; 
+
 void followHarvester() {
+  if(harvesterProps.get("load") == 0 || truckProps.get("load") == truckCapacity) {
+    enganchado = false; 
+    terminarEnganche = true; 
+    return; 
+  } 
+  
   if(harvesterProps.get("velX") == 0 ) {
     if(harvesterProps.get("direction") == 1) {
       harvesterProps.put("velX", 5); 
@@ -307,8 +319,53 @@ void followHarvester() {
   truckProps.put("load", actualTruckLoad + (drainRatio * Math.abs(harvesterProps.get("velX")))); 
   
   
-  println(actualHarvesterLoad, actualTruckLoad, harvesterProps.get("velX")); 
+  paintTruckBeforeMove();  
+  truckProps.put("x", harvesterProps.get("x")); 
+  truckProps.put("y", harvesterProps.get("y") + harvesterHeight + 15); 
+  paintTruckAfterMove(); 
   
+    //Draw the capacity
+    float harvesterLoadWidthPercentage =(float) harvesterProps.get("load") / harvesterCapacity; 
+    float truckLoadWidthPercentage = (float) truckProps.get("load") / truckCapacity; 
+    float harvesterLoadWidthFloat = harvesterWidth * harvesterLoadWidthPercentage; 
+    float truckLoadWidthFloat = truckWidth * truckLoadWidthPercentage; 
+    int harvesterLoadWidth = (int) harvesterLoadWidthFloat;  
+    int truckLoadWidth = (int) truckLoadWidthFloat;
+    
+    
+  
+  
+    // Draw load 
+    fill(purpleColor); 
+    if(harvesterProps.get("velX") > 0) {
+      rect(harvesterProps.get("x"), harvesterProps.get("y"), harvesterLoadWidth, harvesterHeight);
+      rect(truckProps.get("x"), truckProps.get("y"), truckLoadWidth, truckHeight, 5);
+    } else {
+      rect(harvesterProps.get("x") + harvesterWidth - harvesterLoadWidth, harvesterProps.get("y"), harvesterLoadWidth, harvesterHeight);
+      rect(truckProps.get("x") + truckWidth - truckLoadWidth, truckProps.get("y"), truckLoadWidth, truckHeight, 5);
+    }
+    
+  // Draw wheels 
+  // They are drawn here so that they are in front of the load counter.
+    fill(blackColor); // Black color
+    ellipse(harvesterProps.get("x") + harvesterWheelDiameter, harvesterProps.get("y") + harvesterHeight, harvesterWheelDiameter, harvesterWheelDiameter);
+    ellipse(harvesterProps.get("x") + harvesterWidth - harvesterWheelDiameter, harvesterProps.get("y") + harvesterHeight, harvesterWheelDiameter, harvesterWheelDiameter);
+}
+
+void transportLoad() {
+  int finalX = (roadWidth / 2) - (truckWidth / 2); 
+  int finalY = height - truckHeight - 20; 
+  if (truckProps.get("x") >= finalX) {
+    truckProps.put("velX", -2); 
+  } else {
+    truckProps.put("velX", 0); 
+  }
+  if (truckProps.get("y") <= finalY) {
+    truckProps.put("velY", 2); 
+  } else {
+    truckProps.put("velY", 0); 
+  }
+
 }
 
 void draw() {
@@ -329,15 +386,24 @@ void draw() {
   } 
   
   
-  if(!enganchado) {
+  if(!enganchado && !terminarEnganche) {
     verificarLlegadaY(); 
     verificarLlegadaX();
     paintTruckBeforeMove(); 
     moveTruck(); 
     paintTruckAfterMove(); 
   } else {
+  if(!terminarEnganche) {
     followHarvester(); 
+  } else {
+    transportLoad(); 
+    paintTruckBeforeMove(); 
+    moveTruck(); 
+    paintTruckAfterMove(); 
   }
+  }
+    
+ 
   
 
   
