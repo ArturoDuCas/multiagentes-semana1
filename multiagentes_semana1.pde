@@ -118,7 +118,6 @@ boolean verifyHarvesterMove() {
   
   if(futureXPos + harvesterWidth >= width || futureXPos <= roadWidth) {
     // If it has finished
-    println(futureYPos); 
     if(futureYPos < 0) {
       return true; 
     }
@@ -284,13 +283,24 @@ void verificarLlegadaY(){
 }
 
 void verificarLlegadaX(){
+  int y = truckProps.get("y"); 
+  int yRoute = truckProps.get("yRoute"); 
+  
+  
+  if(y >= yRoute + 2) {
+    return; 
+  }
+ 
   if(truckProps.get("xRoute") != 0) {
     if(truckProps.get("x") <= truckProps.get("xRoute")) {
       truckProps.put("velX", 4); 
     } else {
       truckProps.put("velX", 0); 
       enganchado = true; 
+      terminarEnganche = false; 
     }
+  } else {
+    truckProps.put("xRoute", harvesterProps.get("x")); 
   }
 }
 
@@ -299,6 +309,7 @@ void verificarLlegadaX(){
 
 void followHarvester() {
   if(harvesterProps.get("load") == 0 || truckProps.get("load") == truckCapacity) {
+    truckProps.put("load", 0); // ;KLDAJSFKL;AJS;LKFAJL;KFJAL;KFDJA;LK FDJA;LF JAS;LKFJDSA;LKFJDAS;LK JFDS;ALK FSDA K;FSAD;JFK;DLASJF;KLASDJ F;LKAJS FLK;AJDS ;LFKDJLAK;SJFKL;ASDJFLK;SDAJLK;FSDJAL;KFJDASKL;JFDAS;LK
     enganchado = false; 
     terminarEnganche = true; 
     return; 
@@ -365,6 +376,16 @@ void transportLoad() {
   } else {
     truckProps.put("velY", 0); 
   }
+  
+  
+  
+  if(truckProps.get("x") <= finalX && truckProps.get("y") >= finalY) {
+    truckProps.put("velX", 0); 
+    truckProps.put("velY", 0);
+    terminarEnganche = false; 
+    
+    
+  }
 
 }
 
@@ -381,12 +402,12 @@ void draw() {
     
     harvestOnMove();
     
-    i = i + 1; 
     calculateHarvesterFinalPosition();   
   } 
   
-  
+  println(enganchado, terminarEnganche); 
   if(!enganchado && !terminarEnganche) {
+    
     verificarLlegadaY(); 
     verificarLlegadaX();
     paintTruckBeforeMove(); 
